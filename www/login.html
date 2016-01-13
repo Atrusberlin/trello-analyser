@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Trello-Login</title>
+    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="https://api.trello.com/1/client.js?key=f6edff2fce47c2633d5dc3cbd7a37181"></script>
+</head>
+<body>
+
+<script language="JavaScript">
+    var authenticationSuccess = function() { console.log("Successful authentication"); };
+    var authenticationFailure = function() { console.log("Failed authentication"); };
+    Trello.authorize({
+      type: "popup",
+      name: "TrelloAnalyser",
+      scope: {
+        read: true,
+        write: false },
+      expiration: "1hour",
+      authenticationSuccess,
+      authenticationFailure
+    });
+
+
+</script>
+
+</body>
+</html>
