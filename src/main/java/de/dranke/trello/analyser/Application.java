@@ -1,15 +1,16 @@
 package de.dranke.trello.analyser;
 
-import org.glassfish.jersey.client.oauth1.AccessToken;
-import org.glassfish.jersey.client.oauth1.ConsumerCredentials;
-import org.glassfish.jersey.client.oauth1.OAuth1AuthorizationFlow;
-import org.glassfish.jersey.client.oauth1.OAuth1ClientSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.julienvey.trello.domain.Member;
+import com.julienvey.trello.impl.TrelloImpl;
+import com.julienvey.trello.impl.http.ApacheHttpClient;
+import de.dranke.trello.analyser.security.SecurityManager;
 import org.slf4j.Logger;
-import spark.Spark;
 
 import java.io.File;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static spark.Spark.get;
 import static spark.SparkBase.externalStaticFileLocation;
 
 /**
@@ -17,48 +18,26 @@ import static spark.SparkBase.externalStaticFileLocation;
  */
 public class Application {
 
-    private static OAuth1AuthorizationFlow flow;
-    public static final Logger LOGGER = getLogger("Application");
-    public static final String APP_PATH = "/trello/analyse";
-    public static final String callbackURL = "http://" +
-            System.getProperty("server.domain") + ":" +
-            System.getProperty("server.port") + APP_PATH + "/createSession";
+  public static final Logger LOGGER = getLogger(Application.class);
+  public static final String APP_PATH = "/trello/analyse";
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        String www = new File("www").getAbsolutePath();
-        LOGGER.info("Read static files from: {}", www);
-        externalStaticFileLocation(www);
+    String www = new File("www").getAbsolutePath();
+    LOGGER.info("Read static files from: {}", www);
+    externalStaticFileLocation(www);
 
-        Spark.get(APP_PATH + "/login", (req, res) -> {
-            flow = createFlow();
-            res.redirect(flow.start());
-            return "";
-        });
+    final SecurityManager securityManager = SecurityManager.getInstance();
+    securityManager.configureHttps(new File(System.getProperty("keystore.file")), System.getProperty("keystore.pw"));
+    securityManager.configureSecurity();
 
-        Spark.get(APP_PATH + "/createSession", (req, res) -> {
-            return createtClientSession(req.queryParams("oauth_verifier")).getToken();
-        });
-
-    }
-
-    public static OAuth1AuthorizationFlow createFlow() {
-        ConsumerCredentials consumerCredentials = new ConsumerCredentials(System.getProperty("trello.key"), System.getProperty("trello.secret"));
-        OAuth1AuthorizationFlow flow = OAuth1ClientSupport.builder(consumerCredentials)
-                .authorizationFlow(
-                        "https://trello.com/1/OAuthGetRequestToken",
-                        "https://trello.com/1/OAuthGetAccessToken",
-                        "https://trello.com/1/OAuthAuthorizeToken?name=TrelloAnalyser&expiration=1hour&scope=read")
-                .callbackUri(callbackURL)
-                .build();
-        return flow;
-    }
-
-    private static AccessToken createtClientSession(String oauthVerifier) {
-        AccessToken accessToken = flow.finish(oauthVerifier);
-//        client = ClientBuilder.newBuilder()
-//                .register(this.authFlow.getOAuth1Feature())
-//                .build();
-        return accessToken;
-    }
+    get(APP_PATH + "/boards", (req, res) -> {
+//      final RestTemplateHttpClient httpClient = new RestTemplateHttpClient();
+      res.type("application/json");
+      final ObjectMapper objectMapper = new ObjectMapper();
+      final TrelloImpl trello = new TrelloImpl(securityManager.getApplicationKey(), securityManager.getLogin(req).getAccessToken().getToken(), new ApacheHttpClient());
+      final Member me = trello.getMemberInformation("me");
+      return objectMapper.writeValueAsString(me);
+    });
+  }
 }
