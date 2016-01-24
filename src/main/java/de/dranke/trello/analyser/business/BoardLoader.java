@@ -22,7 +22,7 @@ public class BoardLoader {
   public List<TrelloBoard> load() {
     final Member me = client.getMemberInformation("me");
     final ArrayList<TrelloBoard> result = new ArrayList<>();
-    me.getIdBoards().stream().forEach((id) -> {
+    me.getIdBoards().parallelStream().forEach((id) -> {
       final TrelloBoard trelloBoard = loadInternal(id);
       trelloBoard.setLists(loadLists(id));
       result.add(trelloBoard);

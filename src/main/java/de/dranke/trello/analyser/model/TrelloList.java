@@ -5,10 +5,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TrelloList {
 
-  private final String id;
+  private String id;
   private String title;
 
   public TrelloList(String id) {
+    this.id = id;
+  }
+
+  public TrelloList() {
+  }
+
+  public void setId(String id) {
     this.id = id;
   }
 

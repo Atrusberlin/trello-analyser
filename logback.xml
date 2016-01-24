@@ -1,0 +1,46 @@
+<configuration scan="true" scanPeriod="30 seconds" debug="false">
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="SPARKFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>spark.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>spark.%i.log.zip</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>3</maxIndex>
+    </rollingPolicy>
+
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>5MB</maxFileSize>
+    </triggeringPolicy>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- <appender name="MONGO" class="logback.mongodb.MongoDBAppender">
+       <connectionSource class="logback.mongodb.MongoDBConnectionSource">
+           <uri>mongodb://127.0.0.1</uri>
+           <db>logdb</db>
+           <collection>plattformprioritaet</collection>
+       </connectionSource>
+   </appender>-->
+
+  <logger name="de.dranke.trello" level="DEBUG" additivity="false">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <logger name="spark" level="DEBUG" additivity="false">
+    <appender-ref ref="SPARKFILE"/>
+  </logger>
+
+  <root level="ERROR">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
